@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전자 회로와 반도체 소자 - 2학년 수업자료</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #10b981;
+            --text-color: #1f2937;
+            --bg-color: #ffffff;
+            --light-gray: #f3f4f6;
+            --error-color: #ef4444;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden; /* 슬라이드 효과를 위해 스크롤 방지 */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 5px;
+            background-color: var(--light-gray);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Slide Container */
+        .slide-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            width: 80%;
+            max-width: 900px;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.5s ease-in-out;
+            pointer-events: none;
+            text-align: center;
+            padding: 2rem;
+            box-sizing: border-box;
+            background: white;
+            border-radius: 15px;
+            /* box-shadow: 0 10px 25px rgba(0,0,0,0.05); 깔끔함을 위해 그림자는 최소화 */
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+            z-index: 10;
+        }
+
+        .slide.prev {
+            opacity: 0;
+            transform: translateX(-100px);
+        }
+
+        /* Typography & Elements */
+        h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #4b5563;
+            margin-bottom: 1.5rem;
+        }
+
+        .highlight {
+            color: var(--primary-color);
+            font-weight: bold;
+            background-color: #eff6ff;
+            padding: 0 5px;
+            border-radius: 4px;
+        }
+
+        .emoji-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .card-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: var(--light-gray);
+            padding: 20px;
+            border-radius: 10px;
+            width: 250px;
+            text-align: left;
+            border: 2px solid transparent;
+            transition: transform 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        /* Images */
+        .concept-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 50px;
+            background-color: white;
+            z-index: 20;
+        }
+
+        button.nav-btn {
+            padding: 12px 24px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .prev-btn {
+            background-color: var(--light-gray);
+            color: var(--text-color);
+        }
+
+        .next-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .prev-btn:hover { background-color: #e5e7eb; }
+        .next-btn:hover { background-color: #2563eb; }
+        .next-btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
+
+        /* Quiz Styles */
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .quiz-btn {
+            padding: 15px;
+            border: 2px solid var(--light-gray);
+            background: white;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .quiz-btn:hover {
+            border-color: var(--primary-color);
+            background-color: #eff6ff;
+        }
+
+        .quiz-btn.correct {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        .quiz-btn.wrong {
+            background-color: var(--error-color);
+            color: white;
+            border-color: var(--error-color);
+            animation: shake 0.5s;
+        }
+
+        .feedback-msg {
+            margin-top: 15px;
+            font-weight: bold;
+            min-height: 30px;
+        }
+
+        /* Animation */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Table Style */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        .comparison-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .comparison-table tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Slides -->
+    <div class="slide-container" id="slideContainer">
+        
+        <!-- Slide 1: Intro -->
+        <div class="slide active">
+            <span class="emoji-icon">⚡</span>
+            <h1>전자 회로와 반도체 소자</h1>
+            <p>전기융합제어과 2학년 여러분, 환영합니다!</p>
+            <p>오늘은 전자 공학의 핵심인 <strong>전자 회로의 기초 개념</strong>을<br>쉽고 재미있게 알아보겠습니다.</p>
+        </div>
+
+        <!-- Slide 2: Goals -->
+        <div class="slide">
+            <h2>🎯 오늘의 학습 목표</h2>
+            <div style="text-align: left; max-width: 600px; margin: 0 auto;">
+                <p>1️⃣ <strong>전자 회로</strong>가 무엇인지 정확히 설명할 수 있다.</p>
+                <p>2️⃣ <strong>수동 소자</strong>와 <strong>능동 소자</strong>를 구분할 수 있다.</p>
+                <p>3️⃣ <strong>아날로그</strong>와 <strong>디지털</strong> 신호의 차이를 이해한다.</p>
+            </div>
+            <p style="margin-top: 30px;">준비되셨나요? 출발해 봅시다! 🚀</p>
+        </div>
+
+        <!-- Slide 3: Hook -->
+        <div class="slide">
+            <h2>🤔 생각 열기</h2>
+            <span class="emoji-icon">🚗</span>
+            <h3>전기 자동차는 '전자 제품'일까요?</h3>
+            <p>기름을 넣는 옛날 자동차는 '기계'에 가까웠습니다.<br>그렇다면 배터리로 가는 전기차는 어떨까요?</p>
+            <p class="feedback-msg" id="hookFeedback"></p>
+            <div class="quiz-options">
+                <button class="quiz-btn" onclick="showHookAnswer(true)">맞다 (전자 제품이다)</button>
+                <button class="quiz-btn" onclick="showHookAnswer(false)">아니다 (여전히 기계다)</button>
+            </div>
+        </div>
+
+        <!-- Slide 4: Hook Answer -->
+        <div class="slide">
+            <h2>💡 정답은 "맞습니다!"</h2>
+            <p>전기차는 배터리, 모터뿐만 아니라 수많은 <span class="highlight">반도체와 센서</span>로 움직입니다.</p>
+            <p>자율 주행, 배터리 관리 시스템(BMS), 인포테인먼트 등<br>
+            자동차 내부의 핵심 기능은 모두 <strong>전자 회로</strong>가 담당합니다.</p>
+            <p>이제 자동차는 거대한 <strong>움직이는 전자 기기</strong>라고 볼 수 있죠. 🚙📱</p>
+        </div>
+
+        <!-- Slide 5: Concept -->
+        <div class="slide">
+            <h2>1. 전자 회로란 무엇인가?</h2>
+            <p>전자 회로(Electronic Circuit)는 단순히 전기를 흐르게 하는 것이 아닙니다.</p>
+            <div class="card" style="width: 100%; margin: 0 auto; max-width: 600px;">
+                <h3>📡 정보 처리 시스템</h3>
+                <p>입력된 신호(정보)를 <strong>증폭, 변환, 정류</strong>하여<br>원하는 형태의 출력 신호로 만드는 시스템입니다.</p>
+            </div>
+            <p style="margin-top: 20px;">
+                <strong>Input(입력)</strong> ➡️ <strong>Process(전자회로)</strong> ➡️ <strong>Output(출력)</strong>
+            </p>
+        </div>
+
+        <!-- Slide 6: Electric vs Electronic -->
+        <div class="slide">
+            <h2>⚖️ 전기 회로 vs 전자 회로</h2>
+            <p>예전에는 강전(Strong)과 약전(Weak)으로 구분하기도 했습니다.</p>
+            <table class="comparison-table">
+                <tr>
+                    <th>구분</th>
+                    <th>전기 회로 (강전) 🔌</th>
+                    <th>전자 회로 (약전) 💻</th>
+                </tr>
+                <tr>
+                    <td>주 목적</td>
+                    <td>에너지 전송 (동력)</td>
+                    <td>정보 전송 (신호)</td>
+                </tr>
+                <tr>
+                    <td>주요 소자</td>
+                    <td>모터, 히터, 전등</td>
+                    <td>반도체 (TR, 다이오드), IC</td>
+                </tr>
+                <tr>
+                    <td>예시</td>
+                    <td>송전탑, 전기장판, 모터</td>
+                    <td>스마트폰, 컴퓨터, AI</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Slide 7: Body Analogy -->
+        <div class="slide">
+            <h2>🧬 인체에 비유하면?</h2>
+            <p>이해를 돕기 위해 사람의 몸과 비교해 볼까요?</p>
+            <div class="card-container">
+                <div class="card">
+                    <span class="emoji-icon">🩸</span>
+                    <h3>전기 회로 = 혈관</h3>
+                    <p>에너지를 공급하는 굵은 흐름.<br>모터를 돌리는 큰 힘!</p>
+                </div>
+                <div class="card">
+                    <span class="emoji-icon">🧠</span>
+                    <h3>전자 회로 = 신경계</h3>
+                    <p>정보를 주고받는 미세한 흐름.<br>판단하고 제어하는 뇌!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Components Intro -->
+        <div class="slide">
+            <h2>2. 전자 회로의 구성 요소</h2>
+            <p>전자 회로를 구성하는 부품(소자)은 크게 두 가지로 나뉩니다.</p>
+            <p style="font-size: 1.5rem;">
+                <span style="color:var(--primary-color)">수동 소자</span> vs <span style="color:var(--error-color)">능동 소자</span>
+            </p>
+            <p>이 둘의 가장 큰 차이는 <strong>"외부 전력의 필요 여부"</strong>입니다.</p>
+        </div>
+
+        <!-- Slide 9: Passive Components -->
+        <div class="slide">
+            <h2>① 수동 소자 (Passive Element)</h2>
+            <p>스스로 전기를 증폭하거나 제어할 수 <strong>없는</strong> 소자입니다.<br>단지 에너지를 소비하거나 저장만 합니다.</p>
+            <div class="card-container">
+                <div class="card">
+                    <h3>저항 (Resistor)</h3>
+                    <p>전류의 흐름을 방해<br>(기호: 〰️)</p>
+                </div>
+                <div class="card">
+                    <h3>인덕터 (Inductor)</h3>
+                    <p>자기에너지를 저장<br>(코일 형태)</p>
+                </div>
+                <div class="card">
+                    <h3>커패시터 (Capacitor)</h3>
+                    <p>전하를 저장<br>(콘덴서)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Active Components -->
+        <div class="slide">
+            <h2>② 능동 소자 (Active Element)</h2>
+            <p>외부에서 전원을 공급받아 신호를 <strong>증폭</strong>하거나 <strong>스위칭</strong>하는 소자입니다.<br>전자 회로의 주인공들이죠! ✨</p>
+            <div class="card-container">
+                <div class="card">
+                    <h3>다이오드</h3>
+                    <p>전류를 한쪽으로만 흐르게 함 (정류)</p>
+                </div>
+                <div class="card">
+                    <h3>트랜지스터 (TR)</h3>
+                    <p>신호 증폭 및 스위칭 작용의 핵심!</p>
+                </div>
+                <div class="card">
+                    <h3>집적회로 (IC)</h3>
+                    <p>수많은 소자를 하나로 뭉친 칩</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Quiz 1 -->
+        <div class="slide">
+            <h2>🧩 퀴즈 TIME (1/3)</h2>
+            <p>다음 중 <strong>'능동 소자'</strong>에 해당하는 것은 무엇일까요?</p>
+            <p class="feedback-msg" id="quiz1Feedback"></p>
+            <div class="quiz-options">
+                <button class="quiz-btn" onclick="checkQuiz(1, 'wrong')">1. 저항 (Resistor)</button>
+                <button class="quiz-btn" onclick="checkQuiz(1, 'wrong')">2. 커패시터 (Capacitor)</button>
+                <button class="quiz-btn" onclick="checkQuiz(1, 'correct')">3. 트랜지스터 (Transistor)</button>
+                <button class="quiz-btn" onclick="checkQuiz(1, 'wrong')">4. 인덕터 (Inductor)</button>
+            </div>
+        </div>
+
+        <!-- Slide 12: Linear vs Non-linear -->
+        <div class="slide">
+            <h2>3. 선형 소자와 비선형 소자</h2>
+            <p>입력 신호가 들어갔을 때, 출력 신호가 어떻게 나오느냐에 따라 구분합니다.</p>
+            <div class="card" style="width:80%; margin: 20px auto;">
+                <h3>📏 선형 소자 (Linear)</h3>
+                <p>입력 신호의 모양(파형)을 그대로 유지하며 크기만 변하거나 위상만 바뀝니다.<br>
+                👉 <strong>저항, 인덕터, 커패시터</strong> (왜곡이 없음)</p>
+            </div>
+        </div>
+
+        <!-- Slide 13: Non-linear -->
+        <div class="slide">
+            <h2>〰️ 비선형 소자 (Non-linear)</h2>
+            <p>입력 신호의 모양이 변형(왜곡)되어 출력됩니다.</p>
+            <div class="card-container">
+                <div class="card" style="width: 400px;">
+                    <h3>왜곡 발생?</h3>
+                    <p>다이오드나 트랜지스터는 특정 전압 이상에서만 전류가 흐르거나(스위칭), 증폭 과정에서 파형이 바뀔 수 있습니다.</p>
+                </div>
+            </div>
+            <p>👉 <strong>다이오드, 트랜지스터</strong> (새로운 주파수 성분이 생김)</p>
+        </div>
+
+        <!-- Slide 14: Summary Table -->
+        <div class="slide">
+            <h2>📊 소자 분류 총정리</h2>
+            <p>이 표는 꼭 기억해두세요! (시험에 잘 나옵니다 😉)</p>
+            <table class="comparison-table">
+                <tr>
+                    <th>구분</th>
+                    <th>수동 소자 (Passive)</th>
+                    <th>능동 소자 (Active)</th>
+                </tr>
+                <tr>
+                    <td>특징</td>
+                    <td>전력 소모/저장<br>선형 동작</td>
+                    <td>증폭/스위칭<br>주로 비선형 동작</td>
+                </tr>
+                <tr>
+                    <td>종류</td>
+                    <td>저항, 인덕터, 커패시터</td>
+                    <td>다이오드, 트랜지스터</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Slide 15: Quiz 2 -->
+        <div class="slide">
+            <h2>🧩 퀴즈 TIME (2/3)</h2>
+            <p>입력 신호의 파형을 <strong>왜곡 없이</strong> 그대로 통과시키는 '선형 소자'는?</p>
+            <p class="feedback-msg" id="quiz2Feedback"></p>
+            <div class="quiz-options">
+                <button class="quiz-btn" onclick="checkQuiz(2, 'wrong')">1. 다이오드</button>
+                <button class="quiz-btn" onclick="checkQuiz(2, 'correct')">2. 저항</button>
+                <button class="quiz-btn" onclick="checkQuiz(2, 'wrong')">3. 트랜지스터</button>
+                <button class="quiz-btn" onclick="checkQuiz(2, 'wrong')">4. 집적회로(IC)</button>
+            </div>
+        </div>
+
+        <!-- Slide 16: Analog vs Digital -->
+        <div class="slide">
+            <h2>4. 아날로그와 디지털 신호</h2>
+            <p>전자 회로가 다루는 신호는 두 가지 형태가 있습니다.</p>
+            <div class="card-container">
+                <div class="card">
+                    <span class="emoji-icon">🌊</span>
+                    <h3>아날로그 (Analog)</h3>
+                    <p>연속적인 값.<br>자연의 소리, 온도, 빛의 밝기.</p>
+                </div>
+                <div class="card">
+                    <span class="emoji-icon">🔢</span>
+                    <h3>디지털 (Digital)</h3>
+                    <p>불연속적인 값 (0과 1).<br>컴퓨터, 스마트폰 데이터.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 17: ADC Process -->
+        <div class="slide">
+            <h2>🔄 아날로그를 디지털로! (ADC)</h2>
+            <p>우리가 마이크에 대고 노래(아날로그)를 부르면,<br>컴퓨터는 이를 어떻게 저장할까요?</p>
+            <div style="background:#f0f9ff; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <p>1️⃣ <strong>표본화 (Sampling)</strong>: 시간을 잘게 쪼갠다.</p>
+                <p>2️⃣ <strong>양자화 (Quantization)</strong>: 값을 숫자로 근사시킨다.</p>
+                <p>3️⃣ <strong>부호화 (Coding)</strong>: 0과 1의 이진수로 바꾼다.</p>
+            </div>
+            <p>이 과정을 수행하는 장치를 <strong>ADC (Analog to Digital Converter)</strong>라고 합니다.</p>
+        </div>
+
+        <!-- Slide 18: Real World Example 1 -->
+        <div class="slide">
+            <h2>📱 실생활 예시: 스마트폰 녹음</h2>
+            <span class="emoji-icon">🎤 ➡️ 📱</span>
+            <p><strong>[목소리]</strong> 연속적인 공기의 진동 (아날로그)</p>
+            <p>⬇️ (마이크 & ADC)</p>
+            <p><strong>[MP3 파일]</strong> 010101... 데이터 (디지털)</p>
+            <p>⬇️ (DAC & 스피커)</p>
+            <p><strong>[재생 소리]</strong> 다시 공기의 진동으로 변환 (아날로그)</p>
+        </div>
+
+        <!-- Slide 19: History -->
+        <div class="slide">
+            <h2>📜 전자 회로의 발전</h2>
+            <p>과거에는 아날로그 계산을 위해 <strong>연산 증폭기(Op-amp)</strong>를 많이 썼지만,<br>
+            지금은 <strong>마이크로프로세서(CPU)</strong>가 디지털 처리를 담당합니다.</p>
+            <p>디지털의 장점: <strong>잡음(Noise)에 강하고, 정보 저장이 쉽다!</strong></p>
+        </div>
+
+        <!-- Slide 20: Real World Example 2 (Gaming) -->
+        <div class="slide">
+            <h2>🎮 실생활 예시: 게이밍 모니터</h2>
+            <p>여러분이 게임할 때 보는 화면도 사실 디지털 신호 처리의 결과입니다.</p>
+            <p><strong>샘플링(Sampling)</strong>과 비슷한 개념이 바로 <strong>주사율(Hz)</strong>입니다.</p>
+            <p>60Hz보다 144Hz가 더 부드럽죠? <br>더 잘게 쪼개서(샘플링) 보여주기 때문입니다.</p>
+        </div>
+
+        <!-- Slide 21: Final Quiz -->
+        <div class="slide">
+            <h2>🎓 최종 정리 퀴즈</h2>
+            <p>아날로그 신호를 디지털 신호로 변환하는 과정의 순서는?</p>
+            <p class="feedback-msg" id="quiz3Feedback"></p>
+            <div class="quiz-options">
+                <button class="quiz-btn" onclick="checkQuiz(3, 'wrong')">1. 양자화 ➡️ 표본화 ➡️ 부호화</button>
+                <button class="quiz-btn" onclick="checkQuiz(3, 'correct')">2. 표본화 ➡️ 양자화 ➡️ 부호화</button>
+                <button class="quiz-btn" onclick="checkQuiz(3, 'wrong')">3. 부호화 ➡️ 표본화 ➡️ 양자화</button>
+            </div>
+        </div>
+
+        <!-- Slide 22: Summary -->
+        <div class="slide">
+            <h2>📝 오늘 수업 요약</h2>
+            <ul style="text-align: left; max-width: 600px; margin: 0 auto; line-height: 2;">
+                <li>✅ <strong>전자 회로</strong>: 정보를 처리하는 신경망 같은 시스템 (약전).</li>
+                <li>✅ <strong>수동 소자</strong>: R(저항), L(인덕터), C(커패시터) - 에너지 소비/저장.</li>
+                <li>✅ <strong>능동 소자</strong>: 다이오드, 트랜지스터(TR) - 신호 증폭/스위칭.</li>
+                <li>✅ <strong>ADC</strong>: 아날로그(연속) ➡️ 디지털(불연속) 변환 장치.</li>
+            </ul>
+        </div>
+
+        <!-- Slide 23: Outro -->
+        <div class="slide">
+            <span class="emoji-icon">👏</span>
+            <h1>수고하셨습니다!</h1>
+            <p>전자 회로의 기초, 어렵지 않죠?</p>
+            <p>다음 시간에는 <strong>다이오드의 특성과 정류 회로</strong>에 대해<br>직접 실습해보는 시간을 갖겠습니다.</p>
+            <p style="color: #9ca3af; margin-top: 50px;">새로고침(F5) 하면 처음부터 다시 볼 수 있습니다.</p>
+        </div>
+
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-buttons">
+        <button class="nav-btn prev-btn" id="prevBtn" onclick="moveSlide(-1)" disabled>이전</button>
+        <span id="pageIndicator" style="align-self: center; font-weight: bold; color: #6b7280;">1 / 23</span>
+        <button class="nav-btn next-btn" id="nextBtn" onclick="moveSlide(1)">다음</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progressBar = document.getElementById('progressBar');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const pageIndicator = document.getElementById('pageIndicator');
+        const totalSlides = slides.length;
+
+        // 퀴즈 잠금 상태 (퀴즈 슬라이드에서는 정답을 맞출 때까지 다음 버튼 비활성화)
+        let quizLocked = {
+            2: true,  // Hook Slide (Index 2)
+            10: true, // Quiz 1 (Index 10)
+            14: true, // Quiz 2 (Index 14)
+            20: true  // Final Quiz (Index 20)
+        };
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active', 'prev');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else if (index < currentSlide) {
+                    slide.classList.add('prev');
+                }
+            });
+
+            // Progress Bar Update
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Button State
+            prevBtn.disabled = currentSlide === 0;
+            
+            // Quiz Lock Check
+            if (quizLocked[currentSlide]) {
+                nextBtn.disabled = true;
+                nextBtn.innerText = "퀴즈를 풀어주세요";
+            } else {
+                nextBtn.disabled = currentSlide === totalSlides - 1;
+                nextBtn.innerText = currentSlide === totalSlides - 1 ? "종료" : "다음";
+            }
+
+            pageIndicator.innerText = `${currentSlide + 1} / ${totalSlides}`;
+        }
+
+        function moveSlide(direction) {
+            if (direction === 1 && currentSlide < totalSlides - 1) {
+                currentSlide++;
+            } else if (direction === -1 && currentSlide > 0) {
+                currentSlide--;
+            }
+            updateSlide();
+        }
+
+        // Hook Quiz Logic
+        function showHookAnswer(isCorrect) {
+            const feedback = document.getElementById('hookFeedback');
+            if(isCorrect) {
+                feedback.innerHTML = "<span style='color:blue'>딩동댕! 🙆‍♂️</span> 다음 장에서 이유를 확인해봐요!";
+                quizLocked[2] = false;
+                nextBtn.disabled = false;
+                nextBtn.innerText = "다음";
+            } else {
+                feedback.innerHTML = "<span style='color:red'>땡! 🙅‍♂️</span> 다시 한번 생각해보세요. 내부에 반도체가 없을까요?";
+            }
+        }
+
+        // General Quiz Logic
+        function checkQuiz(quizNum, result) {
+            let feedbackElement;
+            let slideIndex;
+
+            if (quizNum === 1) {
+                feedbackElement = document.getElementById('quiz1Feedback');
+                slideIndex = 10;
+            } else if (quizNum === 2) {
+                feedbackElement = document.getElementById('quiz2Feedback');
+                slideIndex = 14;
+            } else if (quizNum === 3) {
+                feedbackElement = document.getElementById('quiz3Feedback');
+                slideIndex = 20;
+            }
+
+            if (result === 'correct') {
+                feedbackElement.innerHTML = "✅ 정답입니다! 아주 잘했어요.";
+                feedbackElement.style.color = "var(--secondary-color)";
+                quizLocked[slideIndex] = false;
+                nextBtn.disabled = false;
+                nextBtn.innerText = "다음";
+            } else {
+                feedbackElement.innerHTML = "❌ 오답입니다. 다시 시도해보세요!";
+                feedbackElement.style.color = "var(--error-color)";
+            }
+        }
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                if (!nextBtn.disabled) moveSlide(1);
+            } else if (e.key === 'ArrowLeft') {
+                if (!prevBtn.disabled) moveSlide(-1);
+            }
+        });
+
+        // Initialize
+        updateSlide();
+
+    </script>
+</body>
+</html>
